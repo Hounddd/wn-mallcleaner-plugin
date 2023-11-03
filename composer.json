@@ -1,0 +1,22 @@
+{
+    "name": "hounddd/wn-mallcleaner-plugin",
+    "type": "winter-plugin",
+    "description": "Import or export data to OFFLINE.mall.",
+    "homepage": "https://github.com/Hounddd/wn-mallcleaner-plugin",
+    "keywords": ["winter cms", "winter", "plugin", "mall"],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Hounddd - Damien MATHIEU",
+            "email": "damien@hounddd.fr",
+            "role": "Original Author"
+        }
+    ],
+    "require": {
+        "composer/installers": "~1.0",
+        "offline/oc-mall-plugin": "^1.0||^2.0.0"
+    },
+    "extra": {
+        "installer-name": "mallcleaner"
+    }
+}
