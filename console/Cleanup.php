@@ -86,7 +86,7 @@ class Cleanup extends CompatibilityCommand
             return;
         }
 
-        $this->keepDays = $this->option('days') ?: 120;
+        $this->keepDays = intval($this->option('days')) ?: 120;
         $this->deadline = Carbon::now()->subDays($this->keepDays);
         $this->runningDry = $this->option('dry-run');
 
@@ -147,13 +147,14 @@ class Cleanup extends CompatibilityCommand
     protected function renderActionInfos(string $class, string $name): void
     {
         $count = (new $class)->gdprCleanup($this->deadline, $this->keepDays, $this->runningDry);
+        $rentention = '> '. $this->keepDays .' days';
 
         $action = '<options=bold>['. $count . '] <fg=green>Deleted</></>';
         if ($this->runningDry) {
             $action = '<options=bold>['. $count . '] <fg=yellow>To delete</></>';
         }
 
-        $this->outputTable['lines'][] = ['<fg=yellow>'. $name .'</>', $action];
+        $this->outputTable['lines'][] = ['<fg=yellow>'. $name .' '. $rentention .'</>', $action];
     }
 
 
