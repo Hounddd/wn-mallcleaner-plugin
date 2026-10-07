@@ -1,2 +1,4 @@
 '1.0.0':
     - 'First version of MallCleaner'
+'1.0.1':
+    - 'Use chunk cleanup queries for better performances'
