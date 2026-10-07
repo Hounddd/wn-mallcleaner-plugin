@@ -9,24 +9,32 @@ class EmptyCarts
 {
     public function gdprCleanup(\Carbon\Carbon $deadline, int $keepDays, bool $dryRun = false)
     {
-        $carts = Cart::withTrashed()
+        $total = 0;
+        $query = Cart::withTrashed()
             ->where('updated_at', '<', $deadline)
-            ->doesntHave('products')
-            ->get();
+            ->doesntHave('products');
 
-        $output = $carts->count();
+        if ($dryRun) {
+            // Dry-run mode: just count
+            return $query->count();
+        }
 
-        if (!$dryRun) {
-            // Delete carts
-            $carts->each(function (Cart $cart) {
+        // Process in chunks of 500
+        $query->chunk(500, function ($carts) use (&$total) {
+            foreach ($carts as $cart) {
                 DB::transaction(function () use ($cart) {
                     $cart->forceDelete();
                 });
-            });
+                $total++;
 
-            $carts = null;
-        }
+                // Force a garbage collection
+                unset($cart);
+            }
 
-        return $output;
+            // Clear the model cache
+            gc_collect_cycles();
+        });
+
+        return $total;
     }
 }

@@ -10,27 +10,35 @@ class OldUnpaidOrders
 {
     public function gdprCleanup(\Carbon\Carbon $deadline, int $keepDays, bool $dryRun = false)
     {
-        $orders = Order::withTrashed()
+        $total = 0;
+        $query = Order::withTrashed()
             ->where('created_at', '<', $deadline)
             ->whereHas('order_state', function ($q) {
                 $q->where('flag', OrderState::FLAG_NEW);
             })
-            ->where('payment_state', 'OFFLINE\Mall\Classes\PaymentState\PendingState')
-            ->get();
+            ->where('payment_state', 'OFFLINE\Mall\Classes\PaymentState\PendingState');
 
-        $output = $orders->count();
+        if ($dryRun) {
+            // Dry-run mode: just count
+            return $query->count();
+        }
 
-        if (!$dryRun) {
-            // Delete orders
-            $orders->each(function (Order $order) {
+        // Process in chunks of 500
+        $query->chunk(500, function ($orders) use (&$total) {
+            foreach ($orders as $order) {
                 DB::transaction(function () use ($order) {
                     $order->forceDelete();
                 });
-            });
+                $total++;
 
-            $orders = null;
-        }
+                // Force a garbage collection
+                unset($order);
+            }
 
-        return $output;
+            // Clear the model cache
+            gc_collect_cycles();
+        });
+
+        return $total;
     }
 }
